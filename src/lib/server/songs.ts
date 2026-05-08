@@ -10,6 +10,7 @@ type SongRow = Pick<
 >;
 
 const sortStrings = (values: Iterable<string>) => Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
+const songFetchPageSize = 1000;
 
 const mapSongRow = (row: SongRow): Song => ({
   id: row.id,
@@ -22,22 +23,34 @@ const mapSongRow = (row: SongRow): Song => ({
 });
 
 const fetchSongs = async (supabase: SupabaseClient<Database>, isPublic?: boolean): Promise<Song[]> => {
-  let query = supabase
-    .from('songs')
-    .select('id, title, artist, language, status, tags, is_public')
-    .order('title', { ascending: true });
+  const rows: SongRow[] = [];
 
-  if (isPublic !== undefined) {
-    query = query.eq('is_public', isPublic);
+  for (let from = 0; ; from += songFetchPageSize) {
+    let query = supabase
+      .from('songs')
+      .select('id, title, artist, language, status, tags, is_public')
+      .order('title', { ascending: true })
+      .order('id', { ascending: true })
+      .range(from, from + songFetchPageSize - 1);
+
+    if (isPublic !== undefined) {
+      query = query.eq('is_public', isPublic);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    rows.push(...(data as SongRow[]));
+
+    if (data.length < songFetchPageSize) {
+      break;
+    }
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    throw error;
-  }
-
-  return (data as SongRow[]).map(mapSongRow);
+  return rows.map(mapSongRow);
 };
 
 export const listPublicSongs = () => fetchSongs(supabasePublic, true);

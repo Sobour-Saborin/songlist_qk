@@ -1,15 +1,28 @@
 import { z } from 'zod';
 import { zfd } from 'zod-form-data';
 
-import { pageSettingsSchema, playlistImportSettingsSchema, requestDecisionSchema, songSchema } from '$lib/validators';
+import {
+  pageSettingsSchema,
+  playlistImportSettingsSchema,
+  playlistSongImportSchema,
+  requestDecisionSchema,
+  songSchema
+} from '$lib/validators';
 
 const formText = z.string().default('');
 export const maxPlaylistImportSongCount = 5000;
 const playlistImportSongCountMessage = `单次最多导入 ${maxPlaylistImportSongCount} 首歌曲。`;
+const playlistImportShapeMessage = '导入表单数据不完整，请重新解析歌单。';
 const playlistImportTextRows = z.array(formText).max(maxPlaylistImportSongCount, playlistImportSongCountMessage);
 const playlistImportSelectedRows = z
   .array(zfd.numeric(z.number().int().min(0)))
   .max(maxPlaylistImportSongCount, playlistImportSongCountMessage);
+const playlistImportPreviewSongSchema = z.object({
+  title: formText,
+  artist: formText,
+  language: formText,
+  tagsInput: formText
+});
 
 export const requestFormValuesSchema = zfd.formData({
   songInput: formText,
@@ -56,7 +69,7 @@ export const bulkUpdateSongsFormSchema = zfd
     ids: id.filter(Boolean)
   }));
 
-export const playlistImportFormSchema = zfd
+export const playlistImportFormValuesSchema = zfd
   .formData({
     status: formText.pipe(playlistImportSettingsSchema.shape.status),
     sourceInput: formText,
@@ -65,6 +78,40 @@ export const playlistImportFormSchema = zfd
     songArtist: zfd.repeatable(playlistImportTextRows),
     songLanguage: zfd.repeatable(playlistImportTextRows),
     songTagsInput: zfd.repeatable(playlistImportTextRows)
+  })
+  .superRefine(({ selectedSong, songTitle, songArtist, songLanguage, songTagsInput }, ctx) => {
+    const rowCount = songTitle.length;
+    const rowFields = [
+      ['songArtist', songArtist],
+      ['songLanguage', songLanguage],
+      ['songTagsInput', songTagsInput]
+    ] as const;
+
+    for (const [fieldName, rows] of rowFields) {
+      if (rows.length !== rowCount) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [fieldName],
+          message: playlistImportShapeMessage
+        });
+      }
+    }
+
+    if (new Set(selectedSong).size !== selectedSong.length) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['selectedSong'],
+        message: playlistImportShapeMessage
+      });
+    }
+
+    if (selectedSong.some((index) => index >= rowCount)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['selectedSong'],
+        message: playlistImportShapeMessage
+      });
+    }
   })
   .transform(({ status, sourceInput, selectedSong, songTitle, songArtist, songLanguage, songTagsInput }) => {
     const songs = songTitle.map((title, index) => ({
@@ -85,6 +132,25 @@ export const playlistImportFormSchema = zfd
       selectedSongs: songs.filter((_, index) => selectedIndexes.has(index))
     };
   });
+
+export const playlistImportPayloadSchema = z
+  .object({
+    status: playlistImportSettingsSchema.shape.status,
+    importPreview: z.object({
+      sourceInput: formText,
+      status: playlistImportSettingsSchema.shape.status,
+      songs: z.array(playlistImportPreviewSongSchema).max(maxPlaylistImportSongCount, playlistImportSongCountMessage)
+    }),
+    selectedSongs: z.array(playlistSongImportSchema).min(1, '请选择至少一首歌。')
+  })
+  .transform(({ importPreview, selectedSongs, status }) => ({
+    importPreview,
+    songsToImport: selectedSongs.map((song) => ({
+      ...song,
+      status,
+      isPublic: true
+    }))
+  }));
 
 export const requestDecisionFormSchema = zfd.formData({
   id: formText.pipe(requestDecisionSchema.shape.id),

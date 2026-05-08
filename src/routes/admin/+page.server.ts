@@ -8,7 +8,8 @@ import {
   bulkUpdateSongsFormSchema,
   deleteSongFormSchema,
   maxPlaylistImportSongCount,
-  playlistImportFormSchema,
+  playlistImportFormValuesSchema,
+  playlistImportPayloadSchema,
   playlistPreviewFormValuesSchema,
   profileFormSchema,
   requestDecisionFormSchema,
@@ -25,7 +26,7 @@ import {
   importSongs,
   saveSong
 } from '$lib/server/songs';
-import { playlistPreviewSchema, playlistSongImportSchema, songPreviewSchema } from '$lib/validators';
+import { playlistPreviewSchema, songPreviewSchema } from '$lib/validators';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -196,44 +197,26 @@ export const actions: Actions = {
   },
 
   importPlaylist: async ({ request }) => {
-    const parsed = playlistImportFormSchema.safeParse(await request.formData());
+    const values = playlistImportFormValuesSchema.safeParse(await request.formData());
+
+    if (!values.success) {
+      return fail(400, {
+        kind: 'error' as const,
+        adminError: getValidationMessage(values.error)
+      });
+    }
+
+    const parsed = playlistImportPayloadSchema.safeParse(values.data);
 
     if (!parsed.success) {
       return fail(400, {
-        kind: 'error' as const,
-        adminError: getValidationMessage(parsed.error)
-      });
-    }
-
-    const { importPreview, selectedSongs, status } = parsed.data;
-
-    if (selectedSongs.length === 0) {
-      return fail(400, {
         kind: 'preview-import-error' as const,
-        adminError: '请选择至少一首歌。',
-        importPreview
+        adminError: getValidationMessage(parsed.error),
+        importPreview: values.data.importPreview
       });
     }
 
-    const songsToImport = [];
-
-    for (const song of selectedSongs) {
-      const parsedSong = playlistSongImportSchema.safeParse(song);
-
-      if (!parsedSong.success) {
-        return fail(400, {
-          kind: 'preview-import-error' as const,
-          adminError: getValidationMessage(parsedSong.error),
-          importPreview
-        });
-      }
-
-      songsToImport.push({
-        ...parsedSong.data,
-        status,
-        isPublic: true
-      });
-    }
+    const { importPreview, songsToImport } = parsed.data;
 
     try {
       const importedCount = await importSongs(songsToImport);

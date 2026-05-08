@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { browser } from '$app/environment';
   import AddSongPanel from '$lib/components/admin/AddSongPanel.svelte';
   import NeteaseImportModal from '$lib/components/admin/NeteaseImportModal.svelte';
   import OverviewCard from '$lib/components/admin/OverviewCard.svelte';
@@ -8,21 +7,27 @@
   import SongListCard from '$lib/components/admin/SongListCard.svelte';
   import { hasAdminMessage, hasImportPreview, hasToastableError, startsOnNeteasePanel } from '$lib/admin/result';
   import { Tabs } from 'bits-ui';
-  import { untrack } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
 
   import type { PageData } from './$types';
 
   let { data, form }: { data: PageData; form?: import('$lib/admin/result').AdminActionResult | null } = $props();
-  const initialActiveTab = browser && window.location.hash === '#requests' ? 'requests' : 'songs';
   let importModalDismissed = $state(true);
   let settingsModalOpen = $state(false);
-  let activeTab = $state(initialActiveTab);
-  let syncedHashTab = initialActiveTab;
+  let activeTab = $state('songs');
+  let syncedHashTab = 'songs';
   let addPanelActive = $state(untrack(() => (startsOnNeteasePanel(form) ? 'netease' : 'manual')));
 
   const settingsError = $derived(form?.kind === 'profile-error' ? form.adminError : undefined);
   const importError = $derived(form?.kind === 'preview-import-error' ? form.adminError : undefined);
+
+  onMount(() => {
+    if (window.location.hash === '#requests') {
+      activeTab = 'requests';
+      syncedHashTab = 'requests';
+    }
+  });
 
   $effect(() => {
     if (hasAdminMessage(form)) toast.success(form.adminMessage);

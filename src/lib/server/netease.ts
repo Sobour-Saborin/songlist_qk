@@ -129,7 +129,7 @@ const fetchSongDetails = async (api: NeteaseApi, ids: string[], errorMessage: st
     const detail = await api.song_detail({ ids: batchIds.join(',') });
     const detailTracks = detail.body?.songs;
 
-    if (detail.body?.code !== 200 || !Array.isArray(detailTracks) || detailTracks.length !== batchIds.length) {
+    if (detail.body?.code !== 200 || !Array.isArray(detailTracks)) {
       throw new UserFacingError(errorMessage);
     }
 
@@ -167,6 +167,10 @@ export const fetchNeteaseSong = async (songInput: string) => {
   const songId = extractSongId(songInput);
   const api = await getNeteaseApi();
   const [track] = await fetchSongDetails(api, [songId], songReadErrorMessage);
+
+  if (!track) {
+    throw new UserFacingError(songReadErrorMessage);
+  }
 
   return mapTrack(track, songReadErrorMessage);
 };

@@ -1,10 +1,8 @@
-import adapter from '@sveltejs/adapter-vercel';
-
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
+import adapter from '@sveltejs/adapter-static';
+export default {
   kit: {
-    adapter: adapter()
+    adapter: adapter({
+      fallback: 'index.html'
+    })
   }
-};
-
-export default config;
+}

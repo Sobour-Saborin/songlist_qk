@@ -49,3 +49,26 @@
 
   <RequestForm {form} />
 </div>
+
+<script>
+import QRCode from 'qrcode';
+import { onMount } from 'svelte';
+let qrSrc = '';
+
+async function refreshQr() {
+  // 自动读取当前浏览器地址（实时临时链接）
+  const currentUrl = window.location.href;
+  qrSrc = await QRCode.toDataURL(currentUrl, { width: 240 });
+}
+
+onMount(refreshQr);
+</script>
+
+<div class="share-qr" style="text-align:center; padding:1rem;">
+  <h3>扫码访问当前歌单页面</h3>
+  <p style="font-size:12px; color:#666;">链接为临时地址，每次打开自动更新二维码</p>
+  {#if qrSrc}
+    <img src={qrSrc} alt="临时链接二维码" style="margin:10px 0; border-radius:10px;">
+  {/if}
+  <button on:click={refreshQr}>刷新二维码（链接更新后点这里）</button>
+</div>

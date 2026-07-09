@@ -76,25 +76,3 @@
     </a>
   </div>
 </section>
-<script>
-import QRCode from 'qrcode';
-import { onMount } from 'svelte';
-let qrImg = '';
-
-async function generateQR() {
-  // 自动读取当前页面临时链接
-  const url = window.location.href;
-  qrImg = await QRCode.toDataURL(url, { width: 230 });
-}
-
-onMount(generateQR);
-</script>
-
-<div style="text-align:center; margin-top:2rem;">
-  <h4>分享本页面</h4>
-  <p style="font-size:13px; color:#777;">链接为临时地址，截图仅当前有效</p>
-  {#if qrImg}
-    <img src={qrImg} alt="页面二维码" style="margin:8px 0; border-radius:8px;">
-  {/if}
-  <button on:click={generateQR}>刷新二维码</button>
-</div>

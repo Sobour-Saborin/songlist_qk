@@ -50,7 +50,6 @@
   <RequestForm {form} />
 </div>
 
-<script>
 import QRCode from 'qrcode';
 import { onMount } from 'svelte';
 let qrSrc = '';
@@ -62,7 +61,6 @@ async function refreshQr() {
 }
 
 onMount(refreshQr);
-</script>
 
 <div class="share-qr" style="text-align:center; padding:1rem;">
   <h3>扫码访问当前歌单页面</h3>

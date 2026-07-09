@@ -26,11 +26,11 @@
       <span
         class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] bg-[var(--color-accent)] text-sm font-semibold text-white shadow-sm"
       >
-        歌
+        余
       </span>
       <span class="flex min-w-0 flex-col leading-tight">
-        <span class="text-sm font-semibold text-[var(--color-text)]">QingKong Songlist</span>
-        <span class="text-[11px] text-[var(--color-text-muted)]">单主播歌单与愿望单管理</span>
+        <span class="text-sm font-semibold text-[var(--color-text)]">江余Sobour_Saborin</span>
+        <span class="text-[11px] text-[var(--color-text-muted)]">再给我一秒吧。</span>
       </span>
     </a>
 

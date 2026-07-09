@@ -12,7 +12,7 @@ export const consumeRequestRateLimit = async ({
   const { data, error } = await supabaseAdmin.rpc('consume_request_rate_limit', {
     p_client_key: clientKey,
     p_max_requests: maxRequests,
-    p_window_seconds: Math.ceil(windowMs / 1000)
+    p_window_seconds: Math.ceil(windowMs / 60000)
   });
 
   if (error) {

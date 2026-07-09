@@ -27,7 +27,7 @@
 </script>
 
 <svelte:head>
-  <title>公开歌单 | QingKong Songlist</title>
+  <title>江余Sobour_Saborin</title>
 </svelte:head>
 
 <div class="space-y-8 lg:space-y-10">

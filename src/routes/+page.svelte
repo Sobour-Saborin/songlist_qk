@@ -50,23 +50,26 @@
   <RequestForm {form} />
 </div>
 
-import QRCode from 'qrcode';
-import { onMount } from 'svelte';
-let qrSrc = '';
+ import QRCode from 'qrcode';
+  import { onMount } from 'svelte';
+  let qrSrc = '';
 
-async function refreshQr() {
-  // 自动读取当前浏览器地址（实时临时链接）
-  const currentUrl = window.location.href;
-  qrSrc = await QRCode.toDataURL(currentUrl, { width: 240 });
-}
+  async function refreshQr() {
+    // 判断是否为浏览器环境，服务端跳过
+    if (typeof window === 'undefined') return;
+    const currentUrl = window.location.href;
+    qrSrc = await QRCode.toDataURL(currentUrl, { width: 240 });
+  }
 
-onMount(refreshQr);
+  onMount(refreshQr);
+</script>
 
-<div class="share-qr" style="text-align:center; padding:1rem;">
-  <h3>扫码访问当前歌单页面</h3>
-  <p style="font-size:12px; color:#666;">链接为临时地址，每次打开自动更新二维码</p>
+<!-- HTML部分不变 -->
+<div style="text-align:center; margin-top:2rem;">
+  <h4>扫码分享当前歌单页面</h4>
+  <p style="font-size:13px;color:#666;">临时链接，截图仅当下有效</p>
   {#if qrSrc}
-    <img src={qrSrc} alt="临时链接二维码" style="margin:10px 0; border-radius:10px;">
+    <img src={qrSrc} alt="分享二维码" style="margin:8px 0; border-radius:8px;">
   {/if}
-  <button on:click={refreshQr}>刷新二维码（链接更新后点这里）</button>
+  <button on:click={refreshQr}>刷新二维码</button>
 </div>

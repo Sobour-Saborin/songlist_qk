@@ -14,7 +14,7 @@
 
 <svelte:head>
   <title>QingKong Songlist</title>
-  <meta name="description" content="单主播 VTuber 歌单站，支持公开歌单展示、搜索筛选、愿望单提交与后台管理。" />
+  <meta name="description" content="再给我一秒吧。" />
 </svelte:head>
 
 <div class="flex min-h-screen flex-col">

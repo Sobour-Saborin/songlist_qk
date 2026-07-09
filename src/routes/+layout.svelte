@@ -13,7 +13,7 @@
 </script>
 
 <svelte:head>
-  <title>QingKong Songlist</title>
+  <title>江余Sobour_Saborin</title>
   <meta name="description" content="再给我一秒吧。" />
 </svelte:head>
 
